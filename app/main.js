@@ -1,7 +1,8 @@
-const {app, BrowserWindow, dialog} = require('electron');
+
+const { app, BrowserWindow, dialog } = require('electron');
 const fs = require('fs');
 
-// let mainWindow = null;
+let mainWindow = null;
 
 app.on('ready', () => {
     mainWindow = new BrowserWindow({
@@ -16,8 +17,6 @@ app.on('ready', () => {
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
         mainWindow.webContents.openDevTools();
-
-        getFileFromUser();
     })
 
     mainWindow.on('closed', () => {
@@ -26,7 +25,7 @@ app.on('ready', () => {
 
 });
 
-const getFileFromUser = () => {
+const getFileFromUser = exports.getFileFromUser = () => {
     const files = dialog.showOpenDialog(mainWindow, {
         properties: ['openFile'], // 打开文件
         // 打开文件限制
@@ -44,15 +43,19 @@ const getFileFromUser = () => {
                 extensions: ['png', 'jpg', 'jpeg']
             }
         ]
-    });
-
-    if (!files) {
-        return;
-    }
-
-    const file = files[0];
-    const content = fs.readFileSync(file).toString();
-
-    console.log(content);
+    }).then( files => {
+        if (files) {
+            openFile(files.filePaths[0]);
+        }
+    })
 }
 
+const openFile = (file) => {
+    try{
+        const content = fs.readFileSync(file).toString();
+        mainWindow.webContents.send('file-opened', file, content);
+    }catch(err){
+        console.log(err, file);
+    }
+    
+};
