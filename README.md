@@ -1,5 +1,5 @@
 # markdesk
-a simple markdown desktop tool
+a simple markdown desktop edit tool
 
 # 安装
 ```shell
