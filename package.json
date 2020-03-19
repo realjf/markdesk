@@ -1,0 +1,16 @@
+{
+  "name": "firesale",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron . --no-sandbox",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "realjf",
+  "license": "ISC",
+  "dependencies": {
+    "electron": "^8.1.1",
+    "marked": "^0.8.1"
+  }
+}
