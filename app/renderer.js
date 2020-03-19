@@ -4,7 +4,11 @@ const mainProcess = remote.require('./main');
 const currentWindow = remote.getCurrentWindow();
 
 const marked = require('marked');
+const path = require('path');
 
+// 记录文件信息
+let filePath = null;
+let originalContent = '';
 
 const markdownView = document.querySelector('#markdown');
 const htmlView = document.querySelector('#html');
@@ -36,11 +40,23 @@ markdownView.addEventListener('keyup', (event) => {
 
 openFileButton.addEventListener('click', () => {
     mainProcess.getFileFromUser(currentWindow);
-})
+});
 
 ipcRenderer.on('file-opened', (event, file, content) => {
+    filePath = file;
+    originalContent = content;
+
     markdownView.value = content;
     renderMarkdownToHtml(content);
-})
+    updateUserInterface();
+});
 
+
+const updateUserInterface = () => {
+    let title = 'Mark Desk';
+    if(filePath){
+        title = `${path.basename(filePath)} - ${title}`;
+    }
+    currentWindow.setTitle(title);
+}
 
