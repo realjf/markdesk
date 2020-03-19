@@ -6,4 +6,6 @@ a simple markdown desktop edit tool
 npm install electron marked --save
 ```
 # 启动
+```shell
 npm start
+```
