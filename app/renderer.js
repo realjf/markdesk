@@ -10,6 +10,18 @@ const saveHtmlButton = document.querySelector('#save-html');
 const showFileButton = document.querySelector('#show-file');
 const openInDefaultButton = document.querySelector('#open-in-default');
 
+const saved = false;
+
+// 新建文件
+const newFile = () => {
+    if (markdownView.innerHTML != null && !saved) {
+        alert("content is not saved, please save first!")
+    }
+
+    markdownView.innerHTML = null;
+}
+
+
 // 将markdown转换成html视图
 const renderMarkdownToHtml = (markdown) => {
     htmlView.innerHTML = marked(markdown, {sanitize: true});
