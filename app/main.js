@@ -2,31 +2,62 @@
 const { app, BrowserWindow, dialog } = require('electron');
 const fs = require('fs');
 
-let mainWindow = null;
+const windows = new Set();
 
 app.on('ready', () => {
-    mainWindow = new BrowserWindow({
+    createWindow();
+});
+
+app.on('window-all-closed', () => {
+    if(process.platform === 'darwin') {
+        return false;
+    }
+});
+
+app.on('activate', (event, hasVisibleWindows) => {
+    if(!hasVisibleWindows){
+        createWindow();
+    }
+});
+
+const createWindow = exports.createWindow = () => {
+    let x, y;
+    let currentWindow = new BrowserWindow.getFocusedWindow();
+
+    if (currentWindow){
+        const[currentWindowX, currentWindowY] = currentWindow.getPosition();
+        x = currentWindowX + 10;
+        y = currentWindowY + 10;
+    }
+
+    let newWindow = new BrowserWindow({
+        x,
+        y,
         show: false,
         webPreferences: {
             nodeIntegration: true
         }
     });
 
-    mainWindow.loadFile('app/index.html');
+    newWindow.loadFile('app/index.html');
 
-    mainWindow.once('ready-to-show', () => {
-        mainWindow.show();
-        mainWindow.webContents.openDevTools();
+    newWindow.once('ready-to-show', () => {
+        newWindow.show();
+        // 打开调试工具
+        newWindow.webContents.openDevTools();
     })
 
-    mainWindow.on('closed', () => {
-        mainWindow = null;
+    newWindow.on('closed', () => {
+        windows.delete(newWindow);
+        newWindow = null;
     });
 
-});
+    windows.add(newWindow);
+    return newWindow;
+};
 
-const getFileFromUser = exports.getFileFromUser = () => {
-    const files = dialog.showOpenDialog(mainWindow, {
+const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
+    const files = dialog.showOpenDialog(targetWindow, {
         properties: ['openFile'], // 打开文件
         // 打开文件限制
         filters: [
@@ -45,15 +76,15 @@ const getFileFromUser = exports.getFileFromUser = () => {
         ]
     }).then( files => {
         if (files) {
-            openFile(files.filePaths[0]);
+            openFile(targetWindow, files.filePaths[0]);
         }
-    })
-}
+    });
+};
 
-const openFile = (file) => {
+const openFile = exports.openFile = (targetWindow, file) => {
     try{
         const content = fs.readFileSync(file).toString();
-        mainWindow.webContents.send('file-opened', file, content);
+        targetWindow.webContents.send('file-opened', file, content);
     }catch(err){
         console.log(err, file);
     }
