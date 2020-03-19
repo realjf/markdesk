@@ -22,7 +22,7 @@ app.on('activate', (event, hasVisibleWindows) => {
 
 const createWindow = exports.createWindow = () => {
     let x, y;
-    let currentWindow = new BrowserWindow.getFocusedWindow();
+    let currentWindow = BrowserWindow.getFocusedWindow();
 
     if (currentWindow){
         const[currentWindowX, currentWindowY] = currentWindow.getPosition();
