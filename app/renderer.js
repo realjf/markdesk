@@ -36,6 +36,7 @@ const renderMarkdownToHtml = (markdown) => {
 markdownView.addEventListener('keyup', (event) => {
     const currentContent = event.target.value;
     renderMarkdownToHtml(currentContent);
+    updateUserInterface(currentContent !== originalContent);
 });
 
 openFileButton.addEventListener('click', () => {
@@ -52,11 +53,19 @@ ipcRenderer.on('file-opened', (event, file, content) => {
 });
 
 
-const updateUserInterface = () => {
+const updateUserInterface = (isEdited) => {
     let title = 'Mark Desk';
     if(filePath){
         title = `${path.basename(filePath)} - ${title}`;
     }
+    if(isEdited){
+        title = `${title} (Edited)`;
+    }
     currentWindow.setTitle(title);
-}
+    currentWindow.setDocumentEdited(isEdited);
+
+    saveMarkdownButton.disabled = !isEdited;
+    revertButton.disabled = !isEdited;
+
+};
 
