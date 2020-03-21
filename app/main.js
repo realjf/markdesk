@@ -4,6 +4,9 @@ const fs = require('fs');
 
 const windows = new Set();
 
+// 监控对象列表
+const OpenFiles = new Map();
+
 app.on('ready', () => {
     createWindow();
 });
@@ -49,6 +52,8 @@ const createWindow = exports.createWindow = () => {
 
     newWindow.on('closed', () => {
         windows.delete(newWindow);
+        // 窗口关闭后，同时关闭与关联的文件监控器
+        stopWatchingFile(newWindow);
         newWindow = null;
     });
 
@@ -84,6 +89,7 @@ const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
 const openFile = exports.openFile = (targetWindow, file) => {
     try{
         const content = fs.readFileSync(file).toString();
+        app.addRecentDocument(file);
         targetWindow.setRepresentedFilename(file);
         targetWindow.webContents.send('file-opened', file, content);
     }catch(err){
@@ -91,3 +97,64 @@ const openFile = exports.openFile = (targetWindow, file) => {
     }
     
 };
+
+app.on('will-finish-launching', () => {
+    app.on('open-file', (event, file) => {
+        const win = createWindow();
+        win.once('ready-to-show', () => {
+            openFile(win, file);
+        })
+    })
+});
+
+const saveHtml = exports.saveHtml = (targetWindow, content) => {
+    const file = dialog.showSaveDialog(targetWindow, {
+        title: 'Save HTML',
+        defaultPath: app.getPath('documents'),
+        filters: [
+            { name: 'HTML Files', extensions: ['html', 'htm']}
+        ]
+    });
+
+    if(!file) return;
+
+    fs.writeFileSync(file, content);
+};
+
+const saveMarkdown = exports.saveMarkdown = (targetWindow, file, content) => {
+    if(!file) {
+        file = dialog.showSaveDialog(targetWindow, {
+            title: 'Save Markdown',
+            defaultPath: app.getPath('documents'),
+            filters: [
+                { name: 'Markdown Files', extensions: ['md', 'markdown']}
+            ]
+        });
+    }
+
+    if(!file) return;
+    // 将文件内容写入文件系统
+    fs.writeFileSync(file, content);
+    openFile(targetWindow, file);
+};
+
+const startWatchingFile = (targetWindow, file) => {
+    stopWatchingFile(targetWindow);
+
+    const watcher = fs.watchFile(file, (event) => {
+        if(event === 'change'){
+            const content = fs.readFileSync(file);
+            targetWindow.webContents.send('file-opened', file, content);
+        }
+    });
+
+    OpenFiles.set(targetWindow, watcher);
+};
+
+const stopWatchingFile = (targetWindow) => {
+    if(OpenFiles.has(targetWindow)){
+        OpenFiles.get(targetWindow).stop();
+        OpenFiles.delete(targetWindow);
+    }
+};
+
