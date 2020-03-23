@@ -1,5 +1,6 @@
 
-const { app, BrowserWindow, dialog } = require('electron');
+const { app, BrowserWindow, dialog, Menu } = require('electron');
+const applicationMenu = require('./application-menu');
 const fs = require('fs');
 
 const windows = new Set();
@@ -8,6 +9,8 @@ const windows = new Set();
 const OpenFiles = new Map();
 
 app.on('ready', () => {
+    // 设置应用菜单
+    Menu.setApplicationMenu(applicationMenu);
     createWindow();
 });
 
