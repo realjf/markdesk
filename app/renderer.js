@@ -3,6 +3,8 @@ const mainProcess = remote.require('./main');
 // 获取当前窗口引用
 const currentWindow = remote.getCurrentWindow();
 
+const { Menu } = remote;
+
 const marked = require('marked');
 const path = require('path');
 
@@ -166,5 +168,20 @@ ipcRenderer.on('file-changed', (event, file, content) => {
     });
 
     renderFile(file, content);
-})
+});
+
+ipcRenderer.on('save-markdown', () => {
+    mainProcess.saveMarkdown(currentWindow, filePath, markdownView.value);
+});
+
+ipcRenderer.on('save-html', () => {
+    mainProcess.saveHtml(currentWindow, filePath, htmlView.innerHTML);
+});
+
+markdownView.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    markdownContextMenu.popup();
+});
+
+
 
