@@ -184,7 +184,7 @@ ipcRenderer.on('save-html', () => {
 
 markdownView.addEventListener('contextmenu', (event) => {
     event.preventDefault();
-    markdownContextMenu.popup();
+    createContextMenu().popup();
 });
 
 const showFile = () => {
@@ -223,3 +223,27 @@ const markdownContextMenu = Menu.buildFromTemplate([
     { label: 'Paste', role: 'paste' },
     { label: 'Select All', role: 'selectall'},
 ]);
+
+const createContextMenu = () => {
+    return Menu.buildFromTemplate([
+        { label: 'Open File', click() { mainProcess.getFileFromUser(); }},
+        {
+            label: 'Show File in Folder',
+            click: showFile,
+            enabled: !!filePath
+        },
+        {
+            label: 'Open in Default',
+            click: openInDefaultApplication,
+            enabled: !!filePath
+        },
+        {
+            type: "separator",
+        },
+        { label: 'Cut', role: 'cut' },
+        { label: 'Copy', role: 'copy' },
+        { label: 'Paste', role: 'paste' },
+        { label: 'Select All', role: 'selectall'},
+    ]);
+};
+
