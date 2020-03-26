@@ -1,6 +1,6 @@
 
 const { app, BrowserWindow, dialog, Menu } = require('electron');
-const applicationMenu = require('./application-menu');
+const createApplicationMenu = require('./application-menu');
 const fs = require('fs');
 
 const windows = new Set();
@@ -10,7 +10,7 @@ const OpenFiles = new Map();
 
 app.on('ready', () => {
     // 设置应用菜单
-    Menu.setApplicationMenu(applicationMenu);
+    createApplicationMenu();
     createWindow();
 });
 
@@ -51,12 +51,15 @@ const createWindow = exports.createWindow = () => {
         newWindow.show();
         // 打开调试工具
         newWindow.webContents.openDevTools();
-    })
+    });
+
+    newWindow.on('focus', createApplicationMenu);
 
     newWindow.on('closed', () => {
         windows.delete(newWindow);
         // 窗口关闭后，同时关闭与关联的文件监控器
-        stopWatchingFile(newWindow);
+        // stopWatchingFile(newWindow);
+        createApplicationMenu();
         newWindow = null;
     });
 
@@ -110,15 +113,12 @@ const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
 };
 
 const openFile = exports.openFile = (targetWindow, file) => {
-    try{
-        const content = fs.readFileSync(file).toString();
-        app.addRecentDocument(file);
-        targetWindow.setRepresentedFilename(file);
-        targetWindow.webContents.send('file-opened', file, content);
-    }catch(err){
-        console.log(err, file);
-    }
-    
+    const content = fs.readFileSync(file).toString();
+    startWatchingFile(targetWindow, file);
+    app.addRecentDocument(file);
+    targetWindow.setRepresentedFilename(file);
+    targetWindow.webContents.send('file-opened', file, content);
+    createApplicationMenu();
 };
 
 app.on('will-finish-launching', () => {
