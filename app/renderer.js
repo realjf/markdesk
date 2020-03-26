@@ -206,3 +206,20 @@ openInDefaultButton.addEventListener('click', openInDefaultApplication);
 
 ipcRenderer.on('show-file', showFile);
 ipcRenderer.on('open-in-default', openInDefaultApplication);
+
+const markdownContextMenu = Menu.buildFromTemplate([
+    { label: 'Open File', click() { mainProcess.getFileFromUser(); }},
+    {
+        label: 'Show File in Folder',
+        click: showFile
+    },
+    {
+        label: 'Open in Default Editor',
+        click: openInDefaultApplication
+    },
+    { type: 'separator' },
+    { label: 'Cut', role: 'cut' },
+    { label: 'Copy', role: 'copy' },
+    { label: 'Paste', role: 'paste' },
+    { label: 'Select All', role: 'selectall'},
+]);
