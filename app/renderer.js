@@ -1,4 +1,4 @@
-const { remote, ipcRenderer } = require('electron');
+const { remote, ipcRenderer, shell } = require('electron');
 const mainProcess = remote.require('./main');
 // 获取当前窗口引用
 const currentWindow = remote.getCurrentWindow();
@@ -129,6 +129,10 @@ const renderFile = (file, content) => {
     markdownView.value = content;
     renderMarkdownToHtml(content);
 
+    // 启用打开默认应用
+    showFileButton.disabled = false;
+    openInDefaultButton.disabled = false;
+
     updateUserInterface(false);
 };
 
@@ -183,5 +187,22 @@ markdownView.addEventListener('contextmenu', (event) => {
     markdownContextMenu.popup();
 });
 
+const showFile = () => {
+    if(!filePath){
+        return alert('This file has not been saved to the filesystem.');
+    }
+    shell.showItemInFolder(filePath);
+};
 
+const openInDefaultApplication = () => {
+    if(!filePath){
+        return alert('This file has not been saved to the filesystem.');
+    }
+    shell.OpenItem(filePath);
+};
 
+showFileButton.addEventListener('click', showFile);
+openInDefaultButton.addEventListener('click', openInDefaultApplication);
+
+ipcRenderer.on('show-file', showFile);
+ipcRenderer.on('open-in-default', openInDefaultApplication);
